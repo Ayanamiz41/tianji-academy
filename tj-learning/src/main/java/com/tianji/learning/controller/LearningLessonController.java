@@ -4,11 +4,15 @@ package com.tianji.learning.controller;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianji.common.domain.dto.PageDTO;
 import com.tianji.common.domain.query.PageQuery;
+import com.tianji.learning.domain.dto.LearningPlanDTO;
 import com.tianji.learning.domain.po.LearningLesson;
 import com.tianji.learning.domain.vo.LearningLessonVO;
+import com.tianji.learning.domain.vo.LearningPlanPageVO;
 import com.tianji.learning.service.ILearningLessonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 /**
  * <p>
@@ -50,8 +54,18 @@ public class LearningLessonController {
         return lessonService.countLearningLessonByCourse(courseId);
     }
 
-    @GetMapping("/lessons/{courseId}/valid")
+    @PostMapping("/plans")
+    public void createLearningPlans(@Valid @RequestBody LearningPlanDTO planDTO){
+        lessonService.createLearningPlan(planDTO.getCourseId(), planDTO.getFreq());
+    }
+
+    @GetMapping("/{courseId}/valid")
     public Long isLessonValid(@PathVariable("courseId") Long courseId){
         return lessonService.isLessonValid(courseId);
+    }
+
+    @GetMapping("/plans")
+    public LearningPlanPageVO queryMyPlans(PageQuery query){
+        return lessonService.queryMyPlans(query);
     }
 }
