@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianji.api.client.user.UserClient;
 import com.tianji.api.dto.user.UserDTO;
 import com.tianji.api.client.remark.RemarkClient;
+import com.tianji.common.autoconfigure.mq.RabbitMqHelper;
+import com.tianji.common.constants.MqConstants;
 import com.tianji.common.domain.dto.PageDTO;
 import com.tianji.common.exceptions.BadRequestException;
 import com.tianji.common.utils.BeanUtils;
@@ -46,6 +48,7 @@ public class InteractionReplyServiceImpl extends ServiceImpl<InteractionReplyMap
     private final IInteractionQuestionService questionService;
     private final UserClient userClient;
     private final RemarkClient remarkClient;
+    private final RabbitMqHelper mqHelper;
 
     @Override
     @Transactional
@@ -73,6 +76,14 @@ public class InteractionReplyServiceImpl extends ServiceImpl<InteractionReplyMap
                 .set(replyDTO.getIsStudent(), InteractionQuestion::getStatus, QuestionStatus.UN_CHECK.getValue())
                 .eq(InteractionQuestion::getId, replyDTO.getQuestionId())
                 .update();
+        // 4.尝试累加积分
+        if(replyDTO.getIsStudent()) {
+            // 学生才需要累加积分
+            mqHelper.send(
+                    MqConstants.Exchange.LEARNING_EXCHANGE,
+                    MqConstants.Key.WRITE_REPLY,
+                    5);
+        }
     }
 
     @Override
